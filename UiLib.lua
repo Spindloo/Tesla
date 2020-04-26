@@ -4,7 +4,7 @@ getgenv().ui_options = {
 	toggle_key = Enum.KeyCode.RightShift,
 	can_resize = true,
 }
-
+local ui_options = getgenv().ui_options
 do
 	local imgui = game:GetService("CoreGui"):FindFirstChild("imgui")
 	if imgui then imgui:Destroy() end
