@@ -1,4 +1,4 @@
-local ui_options = {
+getgenv().ui_options = {
 	main_color = Color3.fromRGB(41, 74, 122),
 	min_size = Vector2.new(550, 600),
 	toggle_key = Enum.KeyCode.RightShift,
