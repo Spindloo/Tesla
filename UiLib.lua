@@ -1,688 +1,1073 @@
-for _,v in pairs(game:GetService('CoreGui'):GetDescendants()) do
-	if v:IsA('IntValue') and v.Name == '0v1' then
-		v.Parent:Destroy()
-	end
-end
+local function initLibrary()
+    local library = {flags = {}, callbacks = {}, rainbowI = 0};
 
-local Heartbeat = game:GetService("RunService").Heartbeat;
-local UIS = game:GetService("UserInputService");
-local TweenService = game:GetService("TweenService");
+    local GetService = game.GetService;
+    local Players = GetService(game, "Players");
+    local RunService = GetService(game, "RunService");
+    local CoreGui = GetService(game, "CoreGui");
+    local TweenService = GetService(game, "TweenService");
+    local UserInputService = GetService(game, "UserInputService");
 
+    local LocalPlayer = Players.LocalPlayer;
 
-if shared.Cursor then
-	local Old_Cursor = shared.Cursor;
+    do -- library funcs
+        coroutine.wrap(function()
+            while true do
+                for i = 0, 359 do
+                    library.rainbowI = i / 359;
+                    library.rainbowVal = Color3.fromHSV(i / 359, 1, 1);
+                    wait();
+                end;
+            end;
+        end)();
 
-	shared.Cursor = nil;
-	Old_Cursor:Remove();
-end;
-
-if Drawing then
-	local Cursor = Drawing.new("Circle");
-	Cursor.Filled = true;
-	Cursor.Color = Color3.fromRGB(255, 255, 255);
-	Cursor.Transparency = 1;
-	Cursor.Visible = true;
-	Cursor.Radius = 5;
-	Cursor.Thickness = 1;
-	shared.Cursor = Cursor;
-
-	local connection;
-
-	connection = Heartbeat:Connect(function()
-		if not shared.Cursor then
-			connection:disconnect();
-		else
-			shared.Cursor.Position = UIS:GetMouseLocation();
-		end;
-	end);
-end;
-
-
-local settings = {
-	main_theme = {
-
-	},
-	secondary_theme = {
-		
-	}
-}
-
-local library = {}
-library.WindowCount = 0
-local UIS = game:GetService("UserInputService");
-local Heartbeat = game:GetService("RunService").Heartbeat;
-
-local dragger = {};
-
-    do
-        local mouse        = game:GetService("Players").LocalPlayer:GetMouse();
-        local inputService = game:GetService('UserInputService');
-        local heartbeat    = game:GetService("RunService").Heartbeat;
-
-        -- // credits to Ririchi / Inori for this cute drag function :)
-        function dragger.new(frame, secondlol)
-            frame.Active = true;
-            secondlol.Active = true;
-            
-            secondlol.MouseLeave:connect(function()
-                IsInFrame = false;
-            end)
-
-            secondlol.MouseEnter:connect(function()
-                IsInFrame = true;
-            end)
-
-            local input = secondlol.InputBegan:connect(function(key)
-                if key.UserInputType == Enum.UserInputType.MouseButton1 and IsInFrame then
-                    local objectPosition = Vector2.new(mouse.X - frame.AbsolutePosition.X, mouse.Y - frame.AbsolutePosition.Y);
-                    while heartbeat:wait() and inputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
-                        pcall(function()
-                            frame:TweenPosition(UDim2.new(0, mouse.X - objectPosition.X + (frame.Size.X.Offset * frame.AnchorPoint.X), 0, mouse.Y - objectPosition.Y + (frame.Size.Y.Offset * frame.AnchorPoint.Y)), 'Out', 'Linear', 0.01, true);
-                        end)
+        function library:Create(class, data)
+            local obj = Instance.new(class);
+            for i, v in next, data do
+                if i ~= 'Parent' then
+                    if typeof(v) == "Instance" then
+                        v.Parent = obj;
+                    else
+                        obj[i] = v
                     end
                 end
-            end)
-		end
-	end
-	library.gui = Instance.new("ScreenGui")
-	library.gui.Parent = game:WaitForChild('CoreGui')
-	library.gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	library.gui.Name = game:GetService("HttpService"):GenerateGUID(false):lower():sub(1, 10);
-	library.toggled = true
+            end
 
-	game:GetService('UserInputService').InputBegan:connect(function(key, gpe)
-		--if (not gpe) then
-			if key.KeyCode == Enum.KeyCode.RightShift and library.gui then
-				library.toggled = not library.toggled;
-				library.gui.Enabled = library.toggled;
-				shared.Cursor.Visible = library.toggled;
-			end
-		--end
-	end)
+            obj.Parent = data.Parent;
+            return obj;
+        end;
 
-function library:CreateWindow(name, size)
-	size = size or 0
-	library.flags = {};
-    
-    local main = Instance.new("ImageLabel")
-    local bar = Instance.new("ImageLabel")
-	local title = Instance.new("TextLabel")
-	local UIListLayout = Instance.new("UIListLayout")
+        function library:Dragger(main, second)
+            local dragging;
+            local dragInput;
+            local dragStart;
+            local startPos;
 
-    
-    
-    main.Name = "main"
-    main.Parent = library.gui
-    main.BackgroundColor3 = Color3.new(1, 1, 1)
-    main.BackgroundTransparency = 1
-    main.BorderSizePixel = 0
-    main.Position = UDim2.new(0, 30 + (190 * self.WindowCount), 0, (main.Size.Y.Offset / 2) + 33)
-    main.Size = UDim2.new(0, 180, 0, 333)
-    main.Image = "rbxassetid://4550094458"
-    main.ImageColor3 = Color3.new(0.137255, 0.137255, 0.137255)
-    main.ScaleType = Enum.ScaleType.Slice
-    main.SliceCenter = Rect.new(4, 4, 296, 296)
-    
-    bar.Name = "bar"
-    bar.Parent = main
-    bar.BackgroundColor3 = Color3.new(1, 0.27451, 0.286275)
-    bar.BackgroundTransparency = 1
-    bar.BorderSizePixel = 0
-    bar.Position = UDim2.new(0, 0, 0, -2)
-    bar.Size = UDim2.new(0, 180,0, 32)
-    bar.Image = "rbxassetid://4550094255"
-    bar.ImageColor3 = Color3.new(1, 0.27451, 0.286275)
-    bar.ScaleType = Enum.ScaleType.Slice
-    bar.SliceCenter = Rect.new(4, 4, 296, 296)
-	
-	dragger.new(main, bar)
+            local function update(input)
+                local delta = input.Position - dragStart;
+                second:TweenPosition(UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y),'Out','Sine',0.01,true);
+            end;
 
-    title.Name = "title"
-    title.Parent = bar
-    title.BackgroundColor3 = Color3.new(1, 1, 1)
-    title.BackgroundTransparency = 1
-    title.BorderSizePixel = 0
-    title.Size = UDim2.new(1, 0, 1, 0)
-    title.Font = Enum.Font.GothamSemibold
-    title.Text = name
-    title.TextColor3 = Color3.new(1, 1, 1)
-	title.TextSize = 16
+            main.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = true;
+                    dragStart = input.Position;
+                    startPos = second.Position;
 
-	UIListLayout.Parent = main
-    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    UIListLayout.HorizontalAlignment = "Center";
-    UIListLayout.Padding = UDim.new(0, 5);
-	
-	local mainLib = {}
+                    repeat wait() until input.UserInputState == Enum.UserInputState.End;
+                    dragging = false;
+                end;
+            end);
 
-	mainLib.Count = self.WindowCount
-	mainLib.Container = main
+            main.InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement then
+                    dragInput = input;
+                end;
+            end);
 
-	self.WindowCount = self.WindowCount + 1
+            game:GetService("UserInputService").InputChanged:Connect(function(input)
+                if input == dragInput and dragging then
+                    update(input);
+                end;
+            end);
+        end;
 
-	function mainLib:Resize()
-		local count = 0 
-		for i,v in pairs(main:GetChildren()) do
-			if not v:IsA('UIListLayout') then
-				count = count + 1
-			end
-		end
+        function library:Tween(instance, properties, callback)
+            local callback = callback or function() end;
+            local time = properties.time;
+            properties.time = nil;
+            local anim = TweenService:Create(instance, TweenInfo.new(time), properties);
 
-		local Size = UDim2.new(0, 180, 0, (count * 45 + size) - 10)
-		main.Size = Size
-	end
+            anim.Completed:Connect(callback);
+            anim:Play();
+            return anim;
+        end;
 
-	function mainLib:btnRipple(btn)
-		spawn(function()
-			local mouse = game:GetService("Players").LocalPlayer:GetMouse();
-			local rippleEffect = Instance.new("ImageLabel", btn);
-			local rippleEffectInner = Instance.new("ImageLabel", rippleEffect);
-			rippleEffect.Name = "rippleEffect";
-			rippleEffect.BackgroundTransparency = 1;
-			rippleEffect.BorderSizePixel = 0;
-			rippleEffect.Image = "rbxassetid://2708891598"
-			rippleEffect.ImageColor3 = Color3.fromRGB(244, 244, 244);
-			rippleEffect.ImageTransparency = 0.7;
-			rippleEffect.ScaleType = Enum.ScaleType.Fit;
-			rippleEffectInner.Name = "rippleEffect";
-			rippleEffectInner.AnchorPoint = Vector2.new(0.5, 0.5);
-			rippleEffectInner.BackgroundTransparency = 1;
-			rippleEffectInner.BorderSizePixel = 0;
-			rippleEffectInner.Position = UDim2.new(0.5, 0, 0.5, 0);
-			rippleEffectInner.Size = UDim2.new(1, 0, 1, 0);
-			rippleEffectInner.Image = "rbxassetid://2708891598"
-			rippleEffectInner.ImageColor3 = Color3.fromRGB(45, 45, 45);
-			rippleEffectInner.ImageTransparency = 0.7;
-			rippleEffectInner.ScaleType = Enum.ScaleType.Fit;
-			rippleEffect.Position = UDim2.new((mouse.X - rippleEffect.AbsolutePosition.X) / btn.AbsoluteSize.X, 0, (mouse.Y - rippleEffect.AbsolutePosition.Y) / btn.AbsoluteSize.Y, 0);
-			local Animation = TweenService:Create(rippleEffect, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-				Position = UDim2.new(-4.5, 0, -4.5, 0);
-				Size = UDim2.new(10, 0, 10, 0);
-				ImageTransparency = 1;
-			})
-			Animation:Play();
+        local ui_Settings = {
+            mainColor = Color3.fromRGB(36, 36, 36);
+            bottomColor = Color3.fromRGB(34, 34, 34);
+            borderColor = Color3.fromRGB(42, 42, 42);
+            scrollingBarColor = Color3.fromRGB(115, 41, 255);
+            toggleColor = Color3.fromRGB(34, 34, 34);
+            toggleBorderColor = Color3.fromRGB(102, 41, 255);
+            boxColor = Color3.fromRGB(32, 32, 32);
+            boxBorderColor = Color3.fromRGB(102, 41, 255);
+            gradientColorSection = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(102, 41, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(122, 41, 255))};
+            gradientColor = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(102, 41, 255)), ColorSequenceKeypoint.new(0, Color3.fromRGB(142, 61, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(210, 74, 255))};
+            shadowGradientColor = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)), ColorSequenceKeypoint.new(1, Color3.fromRGB(36, 36, 36))};
+        };
 
-			Animation.Completed:Connect(function()
-				rippleEffect:Destroy();
-			end);
-		end)
-	end
+        UserInputService.InputBegan:Connect(function(input)
+            for i, v in next, library.flags do
+                if(v == input.KeyCode) then
+                    library.callbacks[i]();
+                elseif(v == input.UserInputType) then
+                    library.callbacks[i]();
+                end;
+            end;
+        end);
 
-	function mainLib:Toggle(name, callback)
-		local callback = callback or function() end
-		local checkboxsection = Instance.new("ImageLabel")
-		local checkboxtitle = Instance.new("TextLabel")
-		local checkbox = Instance.new("ImageButton")
-		local fill = Instance.new("ImageLabel")
-		local check = Instance.new("ImageLabel")
+        local gui = Instance.new("ScreenGui", CoreGui);
+        gui.Enabled = false;
+        library.gui = gui;
 
-		checkboxsection.Name = "checkboxsection"
-		checkboxsection.Parent = main
-		checkboxsection.BackgroundColor3 = Color3.new(1, 1, 1)
-		checkboxsection.BackgroundTransparency = 1
-		checkboxsection.BorderSizePixel = 0
-		checkboxsection.Position = UDim2.new(0.5, -85, 0, 98)
-		checkboxsection.Size = UDim2.new(0, 170,0, 35)
-		checkboxsection.Image = "http://www.roblox.com/asset/?id=4550094458"
-		checkboxsection.ImageColor3 = Color3.fromRGB(40, 40, 40)
-		checkboxsection.ScaleType = Enum.ScaleType.Slice
-		checkboxsection.SliceCenter = Rect.new(4, 4, 296, 296)
+        local main = library:Create("Frame", {
+            Name = "main";
+            Parent = gui;
+            Position = UDim2.new(0.5, -200, 0.5, -135);
+            BorderSizePixel = 0;
+            BackgroundColor3 = ui_Settings.mainColor; -- main color
+            Size = UDim2.new(0, 400,0, 270);
+            library:Create("ImageLabel", {
+                Name = "Search";
+                BackgroundTransparency = 1.000;
+                Position = UDim2.new(0, 4, 0, 46);
+                Size = UDim2.new(1, -8, 0, 26);
+                Image = "rbxassetid://4641155515";
+                ImageColor3 = Color3.fromRGB(30, 30, 30);
+                ScaleType = Enum.ScaleType.Slice;
+                SliceCenter = Rect.new(4, 4, 296, 296);
+                library:Create("TextBox", {
+                    Name = "textbox";
+                    BackgroundTransparency = 1.000;
+                    Position = UDim2.new(1, -362, 0, 0);
+                    Size = UDim2.new(1, -30, 1, 0);
+                    Font = Enum.Font.Gotham;
+                    PlaceholderText = "Search";
+                    Text = "";
+                    TextColor3 = Color3.fromRGB(255, 255, 255);
+                    TextSize = 14.000;
+                    TextXAlignment = Enum.TextXAlignment.Left;
+                });
+                library:Create("ImageLabel", {
+                    Name = "icon";
+                    BackgroundTransparency = 1.000;
+                    Position = UDim2.new(0, 2, 0, 1);
+                    Size = UDim2.new(0, 24, 0, 24);
+                    Image = "http://www.roblox.com/asset/?id=4645651350";
+                    library:Create("UIGradient", {
+                        Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(39, 133, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(210, 74, 255))};
+                        Rotation = 45;
+                    });
+                });
+            });
+            library:Create("Frame", {
+                Name = "border";
+                BackgroundColor3 = ui_Settings.bottomColor;
+                BorderColor3 = ui_Settings.borderColor;
+                BorderSizePixel = 1;
+                Position = UDim2.new(0, 5, 0, 78);
+                Size = UDim2.new(0, 390, 0, 186);
+                library:Create("Frame", {
+                    Name = "shadow";
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                    BackgroundTransparency = 0.100;
+                    BorderSizePixel = 0;
+                    Position = UDim2.new(0, 0, 1, -8);
+                    Size = UDim2.new(1, 0, 0, 8);
+                    library:Create("UIGradient", {
+                        Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)), ColorSequenceKeypoint.new(1, Color3.fromRGB(36, 36, 36))};
+                        Rotation = 270;
+                        Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(1.00, 1.00)};
+                    });
+                });
+                library:Create("Frame", {
+                    Name = "shadow";
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                    BackgroundTransparency = 0.100;
+                    BorderSizePixel = 0;
+                    Size = UDim2.new(1, 0, 0, 8);
+                    library:Create("UIGradient", {
+                        Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)), ColorSequenceKeypoint.new(1, Color3.fromRGB(36, 36, 36))};
+                        Rotation = 90;
+                        Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(1.00, 1.00)};
+                    });
+                });
+            });
+            library:Create("Frame", {
+                Name = "bar";
+                BorderSizePixel = 0;
+                BackgroundColor3 = Color3.fromRGB(255, 255, 255); -- bar color
+                Size = UDim2.new(1, 0,0, 4);
+                Position = UDim2.new(0, 0, 0, 0);
+                library:Create("UIGradient", {
+                    Color = ui_Settings.gradientColor;
+                });
+                library:Create("Frame", {
+                    Name = "bottom";
+                    BorderSizePixel = 0;
+                    BackgroundColor3 = ui_Settings.bottomColor;
+                    Position = UDim2.new(0, 0, 0, 4);
+                    Size = UDim2.new(1, 0, 0, 34);
+                    library:Create("Frame", {
+                        BackgroundTransparency = 0.1;
+                        BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                        BorderSizePixel = 0;
+                        Name = "shadow";
+                        Position = UDim2.new(0, 0, 1, 0);
+                    });
+                    library:Create("TextLabel", {
+                        Name = "Title";
+                        BackgroundTransparency = 1;
+                        Position = UDim2.new(0, 10, 0.5, -10);
+                        Size = UDim2.new(0, 70, 0, 24);
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        Text = "Gamer Lib";
+                        Font = "GothamSemibold";
+                        TextSize = 14;
+                        library:Create("UIGradient", {
+                            Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(39, 133, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(210, 74, 255))}
+                        });
+                    });
+                    library:Create("Frame", {
+                        Name = "topcontainer";
+                        BackgroundTransparency = 1;
+                        BorderSizePixel = 0;
+                        Position = UDim2.new(0, 88, 0, 9);
+                        Size = UDim2.new(1, -90, 0.73, 0);
+                        library:Create("UIListLayout", {
+                            Padding = UDim.new(0, 2);
+                            FillDirection = "Horizontal";
+                            HorizontalAlignment = "Left";
+                            SortOrder = "LayoutOrder";
+                            VerticalAlignment = "Top";
+                        });
+                    });
+                });
+            });
+        });
 
-		checkboxtitle.Name = "checkboxtitle"
-		checkboxtitle.Parent = checkboxsection
-		checkboxtitle.BackgroundColor3 = Color3.new(1, 1, 1)
-		checkboxtitle.BackgroundTransparency = 1
-		checkboxtitle.BorderSizePixel = 0
-		checkboxtitle.Position = UDim2.new(0.0576470755, 0, 0, 0)
-		checkboxtitle.Size = UDim2.new(0.470588237, 0, 1, 0)
-		checkboxtitle.Font = Enum.Font.Gotham
-		checkboxtitle.Text = name
-		checkboxtitle.TextColor3 = Color3.new(1, 1, 1)
-		checkboxtitle.TextSize = 14
-		checkboxtitle.TextXAlignment = Enum.TextXAlignment.Left
-		if string.len(checkboxtitle.Text) >= 16 then
-			checkboxtitle.TextScaled = true
-		end
+        local modal = Instance.new("TextButton", main);
+        modal.Modal = true;
+        modal.BackgroundTransparency = 1;
+        modal.Text = "";
 
-		checkbox.Name = "checkbox"
-		checkbox.Parent = checkboxsection
-		checkbox.BackgroundColor3 = Color3.new(1, 0.27451, 0.286275)
-		checkbox.BackgroundTransparency = 1
-		checkbox.BorderSizePixel = 0
-		checkbox.Position = UDim2.new(0.800000012, 0, 0.5, -12)
-		checkbox.Size = UDim2.new(0.141176477, 0, 0.685714304, 0)
-		checkbox.AutoButtonColor = false
-		checkbox.Image = "rbxassetid://4552505888"
-		checkbox.ImageColor3 = Color3.new(1, 0.27451, 0.286275)
+        main.Search.textbox.Changed:Connect(function()
+            local Entry = main.Search.textbox.Text:lower();
 
-		fill.Name = "fill"
-		fill.Parent = checkbox
-		fill.BackgroundColor3 = Color3.new(1, 1, 1)
-		fill.BackgroundTransparency = 1
-		fill.BorderSizePixel = 0
-		fill.Size = UDim2.new(1, 0, 1, 0)
-		fill.Image = "http://www.roblox.com/asset/?id=4555402813"
-		fill.ImageColor3 = Color3.new(1, 0.27451, 0.286275)
-		fill.ImageTransparency = 1
+            if(Entry ~= "") then
+                for i,v in next, library.currentSection:GetChildren() do
+                    if(not v:IsA("UIPadding") and not v:IsA("UIListLayout")) then
+                        local label = v:FindFirstChild("label");
+                        local button = v:FindFirstChild("button");
 
-		check.Name = "check"
-		check.Parent = fill
-		check.BackgroundColor3 = Color3.new(1, 1, 1)
-		check.BackgroundTransparency = 1
-		check.BorderSizePixel = 0
-		check.Position = UDim2.new(0.5, -9, 0.5, -9)
-		check.Size = UDim2.new(0.75, 0, 0.75, 0)
-		check.Image = "http://www.roblox.com/asset/?id=4555411759"
-		check.ImageTransparency = 1
+                        local find = false;
+                        if(label and label.Text:gsub("%s", ""):lower():sub(1, #Entry) == Entry) then
+                            v.Visible = true;
+                            find = true;
+                        end;
 
-		function playtween(object,properties,speed,easing)
-			easing = easing or {};
-			local tween = game:GetService("TweenService"):Create(object,TweenInfo.new(speed,unpack(easing)),properties);
-			tween:Play();
-			return tween;
-		end;
-		
-		local toggle = false
-		
-		checkbox.MouseButton1Click:connect(function()
-			if toggle then
-				playtween(fill,{ImageTransparency = 1},0.1,{Enum.EasingStyle.Linear,Enum.EasingDirection.In});
-				playtween(check,{ImageTransparency = 1},0.1,{Enum.EasingStyle.Linear,Enum.EasingDirection.In});
-				toggle = false
-			else
-				playtween(fill,{ImageTransparency = 0},0.1,{Enum.EasingStyle.Linear,Enum.EasingDirection.In});
-				playtween(check,{ImageTransparency = 0},0.1,{Enum.EasingStyle.Linear,Enum.EasingDirection.In});
-				toggle = true
-			end
-			callback(toggle)
-		end)
-		self:Resize()
-	end
+                        if(button and button:FindFirstChild("label") and button.label.Text:gsub("%s", ""):lower():sub(1, #Entry) == Entry) then
+                            v.Visible = true;
+                            find = true;
+                        end;
 
-	function mainLib:Button(name, callback)
-		local callback = callback or function() end
-		local container = Instance.new("ImageLabel")
-		local button = Instance.new("ImageLabel")
-		local button2 = Instance.new("TextButton")
+                        if(not find) then
+                            v.Visible = false;
+                        end;
+                    end;
+                end;
+            elseif library.currentSection then
+                for i,v in next, library.currentSection:GetChildren() do
+                    if(not v:IsA("UIPadding") and not v:IsA("UIListLayout")) then
+                        v.Visible = true;
+                    end;
+                end;
+            end;
 
-		container.Name = "buttonsection"
-		container.Parent = main
-		container.BackgroundColor3 = Color3.new(1, 1, 1)
-		container.BackgroundTransparency = 1
-		container.BorderSizePixel = 0
-		container.Position = UDim2.new(0.5, -85, 0, 215)
-		container.Size = UDim2.new(0, 170,0, 35)
-		container.Image = "http://www.roblox.com/asset/?id=4550094458"
-		container.ImageColor3 = Color3.new(0.156863, 0.156863, 0.156863)
-		container.ScaleType = Enum.ScaleType.Slice
-		container.SliceCenter = Rect.new(4, 4, 296, 296)
+            library.currentSectionObject:Update();
+        end);
 
-		button.Name = "button"
-		button.Parent = container
-		button.BackgroundColor3 = Color3.new(1, 1, 1)
-		button.BackgroundTransparency = 1
-		button.BorderSizePixel = 0
-		button.Position = UDim2.new(0.5, -78, 0.5, -12)
-		button.Size = UDim2.new(0.917647064, 0, 0.685714304, 0)
-		button.Image = "rbxassetid://4641155515"
-		button.ImageColor3 = Color3.new(1, 0.27451, 0.286275)
-		button.ScaleType = Enum.ScaleType.Slice
-		button.SliceCenter = Rect.new(4, 4, 296, 296)
+        library:Dragger(main.bar.bottom, main);
+        function library:Ready()
+            gui.Enabled = true;
+        end;
 
-		button2.Name = "button"
-		button2.Parent = button
-		button2.BackgroundColor3 = Color3.new(1, 1, 1)
-		button2.BackgroundTransparency = 1
-		button2.BorderSizePixel = 0
-		button2.Size = UDim2.new(1, 0, 1, 0)
-		button2.Font = Enum.Font.Gotham
-		button2.TextColor3 = Color3.new(1, 1, 1)
-		button2.ClipsDescendants = true
-		button2.TextSize = 12
-		button2.Text = name
-		if string.len(button2.Text) >= 25 then
-			button2.TextScaled = true
-		end
-		button2.MouseButton1Click:Connect(function() mainLib:btnRipple(button2) end)
-		button2.MouseButton1Click:Connect(callback)
-		self:Resize()
-	end
+        function library:CreateSection(name)
+            local topContainer = gui.main.bar.bottom.topcontainer;
 
-	function mainLib:Slider(name, settings, callback)
-		local callback = callback or function() end
-		assert(settings.min and settings.max, "You need to put a min value and a max value and a default value!");
+            local sectionSelector = library:Create("ImageButton", {
+                Parent = topContainer;
+                BackgroundTransparency = 1;
+                Size = UDim2.new(0, 60, 1, 0);
+                Image = "rbxassetid://4641155773";
+                ImageColor3 = Color3.fromRGB(255, 255, 255);
+                ScaleType = "Slice";
+                SliceCenter = Rect.new(4, 4, 296, 296);
+                SliceScale = 1;
+                Name = "back";
+                library:Create("UIGradient", {
+                    Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(102, 41, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(132, 41, 255))}
+                });
+                library:Create("TextLabel", {
+                    BackgroundTransparency = 1;
+                    Text = name;
+                    Size = UDim2.new(1, 0, 1, 0);
+                    TextColor3 = Color3.fromRGB(255, 255, 255);
+                });
+            });
 
-		local slidersection = Instance.new("ImageLabel")
-		local slidername = Instance.new("TextLabel")
-		local slider = Instance.new("TextButton")
-		local line = Instance.new("ImageLabel")
-		local fill = Instance.new("ImageLabel")
-		local Frame = Instance.new("ImageLabel")
-		local label = Instance.new("TextLabel")
+            local boxContainer = library:Create("ScrollingFrame", {
+                Name = "box";
+                BorderSizePixel = 0;
+                BackgroundColor3 = Color3.fromRGB(34, 34, 34);
+                Parent = main.border;
+                Position = UDim2.new(0, 1, 0, 1);
+                Size = UDim2.new(1, -2, 1, -2);
+                BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png";
+                TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png";
+                ScrollBarThickness = 4;
+                CanvasSize = UDim2.new(0, 0, 0, 0);
+                library:Create("UIPadding", {
+                    PaddingTop = UDim.new(0, 2);
+                    PaddingLeft = UDim.new(0, 2);
+                });
+                library:Create("UIListLayout", {
+                    Padding = UDim.new(0, 5);
+                    FillDirection = "Vertical";
+                    HorizontalAlignment = "Left";
+                    VerticalAlignment = "Top";
+                });
+            });
 
-		slidersection.Name = "slidersection"
-		slidersection.Parent = main
-		slidersection.BackgroundColor3 = Color3.new(1, 1, 1)
-		slidersection.BackgroundTransparency = 1
-		slidersection.BorderSizePixel = 0
-		slidersection.Position = UDim2.new(0.5, -85, 0, 34)
-		slidersection.Size = UDim2.new(0, 170,0, 60)
-		slidersection.Image = "http://www.roblox.com/asset/?id=4550094458"
-		slidersection.ImageColor3 = Color3.new(0.156863, 0.156863, 0.156863)
-		slidersection.ScaleType = Enum.ScaleType.Slice
-		slidersection.SliceCenter = Rect.new(4, 4, 296, 296)
-		
-		slidername.Name = "slidername"
-		slidername.Parent = slidersection
-		slidername.BackgroundColor3 = Color3.new(1, 1, 1)
-		slidername.BackgroundTransparency = 1
-		slidername.BorderSizePixel = 0
-		slidername.Position = UDim2.new(0.311764717, -43, 0, 0)
-		slidername.Size = UDim2.new(0.470588237, 0, 0.646666706, 0)
-		slidername.Font = Enum.Font.Gotham
-		slidername.Text = name
-		slidername.TextColor3 = Color3.new(1, 1, 1)
-		slidername.TextSize = 14
-		slidername.TextXAlignment = Enum.TextXAlignment.Left
-		
-		slider.Name = "slider"
-		slider.Parent = slidersection
-		slider.BackgroundColor3 = Color3.new(1, 1, 1)
-		slider.BackgroundTransparency = 1
-		slider.BorderSizePixel = 0
-		slider.Size = UDim2.new(1, 0, 1, 0)
-		slider.Font = Enum.Font.SourceSans
-		slider.Text = ""
-		slider.TextColor3 = Color3.new(0, 0, 0)
-		slider.TextSize = 14
-		
-		line.Name = "line"
-		line.Parent = slider
-		line.BackgroundColor3 = Color3.new(1, 1, 1)
-		line.BackgroundTransparency = 1
-		line.BorderSizePixel = 0
-		line.Position = UDim2.new(0.5, -75, 0.680000007, -2)
-		line.Size = UDim2.new(0.882352948, 0, 0.0500000007, 0)
-		line.Image = "rbxassetid://4550094458"
-		line.ImageTransparency = 0.5
-		line.ScaleType = Enum.ScaleType.Slice
-		line.SliceCenter = Rect.new(4, 4, 296, 296)
-		
-		fill.Name = "fill"
-		fill.Parent = line
-		fill.BackgroundColor3 = Color3.new(1, 1, 1)
-		fill.BackgroundTransparency = 1
-		fill.BorderSizePixel = 0
-		fill.Size = UDim2.new(0, 0, 1, 0)
-		fill.Image = "rbxassetid://4550094458"
-		fill.ImageColor3 = Color3.new(1, 0.27451, 0.286275)
-		fill.ScaleType = Enum.ScaleType.Slice
-		fill.SliceCenter = Rect.new(4, 4, 296, 296)
-		
-		Frame.Name = "Frame"
-		Frame.Parent = line
-		Frame.BackgroundColor3 = Color3.new(1, 1, 1)
-		Frame.BackgroundTransparency = 1
-		Frame.BorderSizePixel = 0
-		Frame.Position = UDim2.new(0, 0, 0.5, -7)
-		Frame.Size = UDim2.new(0.0199999996, 0, 4.66666651, 0)
-		Frame.Image = "rbxassetid://4550094458"
-		Frame.ImageColor3 = Color3.new(1, 0.27451, 0.286275)
-		Frame.ScaleType = Enum.ScaleType.Slice
-		Frame.SliceCenter = Rect.new(4, 4, 296, 296)
-		
-		label.Name = "label"
-		label.Parent = slidersection
-		label.BackgroundColor3 = Color3.new(1, 1, 1)
-		label.BackgroundTransparency = 1
-		label.BorderSizePixel = 0
-		label.Position = UDim2.new(1.02941179, -43, 0, 0)
-		label.Size = UDim2.new(0.223529384, 0, 0.646666706, 0)
-		label.Font = Enum.Font.Gotham
-		label.Text = '0'
-		label.TextColor3 = Color3.new(1, 1, 1)
-		label.TextSize = 14
-		label.TextTransparency = 0.5
+            local section = {};
 
-		local Player = game:GetService("Players").LocalPlayer;
-		local UIS = game:GetService("UserInputService");
-		local RuS = game:GetService("RunService");
-		
-		-- Properties
-		local held = false;
-		local step = 1;
-		local percentage = 0;
-		
-		UIS.InputEnded:connect(function(input, processed)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				held = false;
-			end;
-		end);
-		
-		slider.MouseButton1Down:connect(function()
-			held = true;
-		end);
-		
-		RuS.RenderStepped:connect(function(delta)
-			if held then
-				local MousePos = UIS:GetMouseLocation().X;
-				local BtnPos = Frame.Position;
-				local SliderSize = slider.AbsoluteSize.X;
-				local SliderPos = slider.AbsolutePosition.X;
-				local pos = (MousePos-SliderPos)/SliderSize;
-				percentage = math.clamp(pos,0,1);
-				Frame.Position = UDim2.new(percentage,0,BtnPos.Y.Scale, BtnPos.Y.Offset);
-				fill.Size = UDim2.new(percentage,0,0, 3);
-				label.Text = math.floor(percentage*settings.max);
-				callback(tonumber(label.Text))
-			end;
-		end);
-		self:Resize()
-	end
+            boxContainer.ChildAdded:Connect(function(Obj)
+                section:Update();
+            end);
 
-	function mainLib:TextBox(name, defaulttext, callback)
-		local callback = callback or function() end
-		local textboxsection = Instance.new("ImageLabel")
-		local textboxlabel = Instance.new("TextLabel")
-		local textboxholder = Instance.new("ImageLabel")
-		local textbox = Instance.new("TextBox")
+            if(not library.currentSection) then
+                library.currentSectionSelector = sectionSelector;
+                library.currentSection = boxContainer;
+                library.currentSectionObject = section;
 
-		textboxsection.Name = "textboxsection"
-		textboxsection.Parent = main
-		textboxsection.BackgroundColor3 = Color3.new(1, 1, 1)
-		textboxsection.BackgroundTransparency = 1
-		textboxsection.BorderSizePixel = 0
-		textboxsection.Position = UDim2.new(0.5, -85, 0, 176)
-		textboxsection.Size = UDim2.new(0, 170,0, 35)
-		textboxsection.Image = "http://www.roblox.com/asset/?id=4550094458"
-		textboxsection.ImageColor3 = Color3.new(0.156863, 0.156863, 0.156863)
-		textboxsection.ScaleType = Enum.ScaleType.Slice
-		textboxsection.SliceCenter = Rect.new(4, 4, 296, 296)
+                library.currentSectionSelector.ImageColor3 = Color3.fromRGB(150, 150, 150);
+                boxContainer.Visible = true;
+            else
+                boxContainer.Visible = false;
+            end;
 
-		textboxlabel.Name = "textboxlabel"
-		textboxlabel.Parent = textboxsection
-		textboxlabel.BackgroundColor3 = Color3.new(1, 1, 1)
-		textboxlabel.BackgroundTransparency = 1
-		textboxlabel.BorderSizePixel = 0
-		textboxlabel.Position = UDim2.new(0.0576470755, 0, 0, 0)
-		textboxlabel.Size = UDim2.new(0.470588237, 0, 1, 0)
-		textboxlabel.Font = Enum.Font.Gotham
-		textboxlabel.Text = name
-		textboxlabel.TextColor3 = Color3.new(1, 1, 1)
-		textboxlabel.TextSize = 14
-		textboxlabel.TextXAlignment = Enum.TextXAlignment.Left
-		if string.len(textboxlabel.Text) >= 12 then
-			textboxlabel.TextScaled = true
-		end
+            sectionSelector.MouseButton1Click:Connect(function()
+                if(library.currentSection) then
+                    library.currentSectionSelector.ImageColor3 = Color3.fromRGB(255, 255, 255);
+                    library.currentSection.Visible = false;
+                end;
 
-		textboxholder.Name = "textboxholder"
-		textboxholder.Parent = textboxsection
-		textboxholder.BackgroundColor3 = Color3.new(1, 1, 1)
-		textboxholder.BackgroundTransparency = 1
-		textboxholder.BorderSizePixel = 0
-		textboxholder.Position = UDim2.new(0.529411793, 0, 0.5, -12)
-		textboxholder.Size = UDim2.new(0.441176474, 0, 0.685714304, 0)
-		textboxholder.Image = "rbxassetid://4550094458"
-		textboxholder.ImageColor3 = Color3.new(0.137255, 0.137255, 0.137255)
-		textboxholder.ScaleType = Enum.ScaleType.Slice
-		textboxholder.SliceCenter = Rect.new(4, 4, 296, 296)
+                sectionSelector.ImageColor3 = Color3.fromRGB(150, 150, 150);
+                boxContainer.Visible = true;
+                library.currentSectionSelector = sectionSelector;
+                library.currentSection = boxContainer;
+            end);
 
-		textbox.Name = "textbox"
-		textbox.Parent = textboxholder
-		textbox.BackgroundColor3 = Color3.new(1, 1, 1)
-		textbox.BackgroundTransparency = 1
-		textbox.BorderSizePixel = 0
-		textbox.ClipsDescendants = true
-		textbox.Size = UDim2.new(1, 0, 1, 0)
-		textbox.Font = Enum.Font.Gotham
-		textbox.PlaceholderText = "Text"
-		textbox.Text = defaulttext
-		textbox.TextColor3 = Color3.new(1, 1, 1)
-		textbox.TextSize = 10
+            function section:Update()
+                local CanvasSize = UDim2.new(0, 0, 0, 85)
+                for i,v in next, boxContainer:GetChildren() do
+                    if(not v:IsA("UIListLayout") and not v:IsA("UIPadding") and v.Visible) then
+                        CanvasSize = CanvasSize + UDim2.new(0, 0, 0, v.AbsoluteSize.Y + 5);
+                    end;
+                end;
 
-		textbox.FocusLost:Connect(function()
-			callback(textbox.Text)
-		end)
-		self:Resize()
-	end
+                library:Tween(boxContainer, {time = 0.1, CanvasSize = CanvasSize});
+            end;
 
-	function mainLib:Section(text)
-		local section = Instance.new("ImageLabel")
-		local sectiontext = Instance.new("TextLabel")
+            function section:Label(labelName)
+                local holder = library:Create("Frame", {
+                    Name = "holder";
+                    Parent = boxContainer;
+                    BackgroundColor3 = Color3.fromRGB(25, 25, 25);
+                    BorderSizePixel = 0;
+                    Position = UDim2.new(0, 0, 0, 350);
+                    Size = UDim2.new(1, 0, 0, 18);
+                    library:Create("TextLabel", {
+                        Name = "label";
+                        BackgroundTransparency = 1.000;
+                        Size = UDim2.new(1, 0, 1, 0);
+                        Font = "Gotham";
+                        Text = labelName;
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        TextSize = 12.000;
+                    });
+                });
+            end;
 
-		section.Name = "section"
-		section.Parent = main
-		section.BackgroundColor3 = Color3.new(1, 1, 1)
-		section.BackgroundTransparency = 1
-		section.BorderSizePixel = 0
-		section.Position = UDim2.new(0.5, -85, 0, 254)
-		section.Size = UDim2.new(0, 170,0, 35)
-		section.Image = "http://www.roblox.com/asset/?id=4550094458"
-		section.ImageColor3 = Color3.new(0.156863, 0.156863, 0.156863)
-		section.ScaleType = Enum.ScaleType.Slice
-		section.SliceCenter = Rect.new(4, 4, 296, 296)
+            function section:Toggle(toggleName, callback)
+                local callback = callback or function() end;
+                local toggle = false;
 
-		sectiontext.Name = "sectiontext"
-		sectiontext.Parent = section
-		sectiontext.BackgroundColor3 = Color3.new(1, 1, 1)
-		sectiontext.BackgroundTransparency = 1
-		sectiontext.BorderSizePixel = 0
-		sectiontext.Size = UDim2.new(1, 0, 1, 0)
-		sectiontext.Font = Enum.Font.Gotham
-		sectiontext.Text = text
-		sectiontext.TextColor3 = Color3.new(1, 1, 1)
-		sectiontext.TextSize = 14
-		if string.len(sectiontext.Text) >= 18 then
-			sectiontext.TextScaled = true
-		end
-		self:Resize()
-	end
+                library.flags[toggleName] = toggle;
 
-	function mainLib:Bind(name, default, callback)
-		local callback = callback or function() end
-		local keycodename = default
-		local default = default
-		local Type = tostring(default):match("UserInputType") and "UserInputType" or "KeyCode"
-		keycodename = tostring(keycodename):gsub("Enum.UserInputType.", "")
-        keycodename = tostring(keycodename):gsub("Enum.KeyCode.", "")
+                local holder = library:Create("Frame", {
+                    BackgroundTransparency = 1;
+                    Parent = boxContainer;
+                    Size = UDim2.new(1, -20, 0, 18);
+                    Name = "holder";
+                    library:Create("TextLabel", {
+                        Name = "label";
+                        BackgroundTransparency = 1;
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        Position = UDim2.new(0, 22, 0, 0);
+                        Size = UDim2.new(1, -22, 1, 0);
+                        Font = "Gotham";
+                        TextXAlignment = "Left";
+                        TextSize = 12;
+                        Text = toggleName;
+                    });
+                    library:Create("TextButton", {
+                        Name = "toggle";
+                        AutoButtonColor = false;
+                        BackgroundColor3 = ui_Settings.toggleColor;
+                        BorderColor3 = ui_Settings.toggleBorderColor;
+                        BorderSizePixel = 1;
+                        Size = UDim2.new(0, 16, 0, 16);
+                        Text = "";
+                        library:Create("Frame", {
+                            BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                            Size = toggle and UDim2.new(1, 0, 1, 0) or UDim2.new(0, 0, 0, 0);
+                            Name = "fill";
+                            BorderSizePixel = 0;
+                            library:Create("UIGradient", {
+                                Color = ui_Settings.gradientColorSection;
+                                Rotation = 45;
+                            });
+                        });
+                        library:Create("UIListLayout", {
+                            FillDirection = "Vertical";
+                            HorizontalAlignment = "Center";
+                            VerticalAlignment = "Center";
+                        });
+                        library:Create("UIPadding", {
+                            PaddingBottom = UDim.new(0, 1);
+                            PaddingTop = UDim.new(0, 1);
+                            PaddingLeft = UDim.new(0, 1);
+                            PaddingRight = UDim.new(0, 1);
+                        });
+                    });
+                });
 
-		local bindsection = Instance.new("ImageLabel")
-		local TextLabel = Instance.new("TextLabel")
-		local keybindholder = Instance.new("ImageLabel")
-		local keybindbutton = Instance.new("TextButton")
+                local function onClick()
+                    toggle = not toggle;
+                    library:Tween(holder.toggle.fill, {time = 0.1, Size = toggle and UDim2.new(1, 0, 1, 0) or UDim2.new(0, 0, 0, 0)});
+                    library.flags[toggleName] = toggle;
+                    callback(toggle);
+                end;
 
-		bindsection.Name = "bindsection"
-		bindsection.Parent = main
-		bindsection.BackgroundColor3 = Color3.new(1, 1, 1)
-		bindsection.BackgroundTransparency = 1
-		bindsection.BorderSizePixel = 0
-		bindsection.Position = UDim2.new(0.5, -85, 0, 137)
-		bindsection.Size = UDim2.new(0, 170,0, 35)
-		bindsection.Image = "http://www.roblox.com/asset/?id=4550094458"
-		bindsection.ImageColor3 = Color3.new(0.156863, 0.156863, 0.156863)
-		bindsection.ScaleType = Enum.ScaleType.Slice
-		bindsection.SliceCenter = Rect.new(4, 4, 296, 296)
+                holder.toggle.MouseButton1Click:Connect(onClick);
+                return holder;
+            end;
 
-		TextLabel.Parent = bindsection
-		TextLabel.BackgroundColor3 = Color3.new(1, 1, 1)
-		TextLabel.BackgroundTransparency = 1
-		TextLabel.BorderSizePixel = 0
-		TextLabel.Position = UDim2.new(0.0576470755, 0, 0, 0)
-		TextLabel.Size = UDim2.new(0.470588237, 0, 1, 0)
-		TextLabel.Font = Enum.Font.Gotham
-		TextLabel.Text = name
-		TextLabel.TextColor3 = Color3.new(1, 1, 1)
-		TextLabel.TextSize = 14
-		TextLabel.TextXAlignment = Enum.TextXAlignment.Left
-		if string.len(TextLabel.Text) >= 10 then
-			TextLabel.TextScaled = true
-		end
+            function section:Box(boxName, callback)
+                local holder = library:Create("Frame", {
+                    Size = UDim2.new(1, -20, 0, 18);
+                    BackgroundTransparency = 1;
+                    Name = "holder";
+                    Parent = boxContainer;
+                    library:Create("TextLabel", {
+                        BackgroundTransparency = 1;
+                        Name = "label";
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        Text = boxName;
+                        TextSize = 12;
+                        Font = "Gotham";
+                        Size = UDim2.new(1, 0, 1, 0);
+                        TextXAlignment = "Left";
+                    });
+                    library:Create("TextBox", {
+                        BackgroundColor3 = Color3.fromRGB(32, 32, 32);
+                        BorderColor3 = ui_Settings.boxBorderColor;
+                        BorderSizePixel = 1;
+                        Name = "textbox";
+                        TextSize = 14;
+                        Position = UDim2.new(1, -160, 0, 0);
+                        Size = UDim2.new(0, 160, 1, 0);
+                        PlaceholderColor3 = Color3.fromRGB(200, 200, 200);
+                        PlaceholderText = "Value";
+                        Text = "";
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        Font = "SourceSans";
+                    });
+                });
 
-		keybindholder.Name = "keybindholder"
-		keybindholder.Parent = bindsection
-		keybindholder.BackgroundColor3 = Color3.new(1, 1, 1)
-		keybindholder.BackgroundTransparency = 1
-		keybindholder.BorderSizePixel = 0
-		keybindholder.Position = UDim2.new(0.529411793, 0, 0.5, -12)
-		keybindholder.Size = UDim2.new(0.441176474, 0, 0.685714304, 0)
-		keybindholder.Image = "rbxassetid://4641155515"
-		keybindholder.ImageColor3 = Color3.new(1, 0.27451, 0.286275)
-		keybindholder.ScaleType = Enum.ScaleType.Slice
-		keybindholder.SliceCenter = Rect.new(4, 4, 296, 296)
+                holder.textbox.FocusLost:Connect(function(Enter)
+                    if(Enter) then
+                        library.flags[boxName] = holder.textbox.Text;
+                        callback(holder.textbox.Text);
+                    end;
+                end);
+            end;
 
-		keybindbutton.Name = "keybindbutton"
-		keybindbutton.Parent = keybindholder
-		keybindbutton.BackgroundColor3 = Color3.new(1, 1, 1)
-		keybindbutton.BackgroundTransparency = 1
-		keybindbutton.BorderSizePixel = 0
-		keybindbutton.Size = UDim2.new(1, 0, 1, 0)
-		keybindbutton.Font = Enum.Font.Gotham
-		keybindbutton.Text = ". . ."
-		keybindbutton.TextColor3 = Color3.new(1, 1, 1)
-		keybindbutton.TextSize = 10
-		local WhitelistedType = {
-			[Enum.UserInputType.MouseButton1] = "Mouse1";
-			[Enum.UserInputType.MouseButton2] = "Mouse2";
-			[Enum.UserInputType.MouseButton3] = "Mouse3";
-		};
+            function section:Slider(sliderName, properties, callback)
+                local callback = callback or function() end;
+                library.flags[sliderName] = properties.min;
 
-		keybindbutton.MouseButton1Click:Connect(function()
-			local Connection;
+                local holder = library:Create("Frame", {
+                    Size = UDim2.new(1, -20, 0, 36);
+                    BackgroundTransparency = 1;
+                    Name = "holder";
+                    Parent = boxContainer;
+                    library:Create("TextLabel", {
+                        Name = "label";
+                        BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                        BackgroundTransparency = 1.000;
+                        Size = UDim2.new(1, 0, 0, 17);
+                        Font = "Gotham";
+                        Text = sliderName;
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        TextSize = 12.000;
+                        TextXAlignment = "Left";
+                    });
+                    library:Create("TextButton", {
+                        Name = "slider";
+                        BackgroundColor3 = Color3.fromRGB(34, 34, 34);
+                        BorderColor3 = Color3.fromRGB(102, 41, 255);
+                        Position = UDim2.new(0, 0, 1, -19);
+                        Size = UDim2.new(1, 0, 0, 16);
+                        AutoButtonColor = false;
+                        Font = "SourceSans";
+                        Text = "";
+                        TextColor3 = Color3.fromRGB(0, 0, 0);
+                        TextSize = 14.000;
+                        library:Create("TextLabel", {
+                            Name = "value";
+                            BackgroundTransparency = 1;
+                            Size = UDim2.new(1, 0, 1, 0);
+                            Font = "SourceSans";
+                            Text = properties.default and tostring(properties.default) or tostring(properties.min);
+                            TextColor3 = Color3.fromRGB(255, 255, 255);
+                            TextSize = 14.000;
+                            ZIndex = 2;
+                        });
+                        library:Create("Frame", {
+                            BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                            Position = UDim2.new(0, 1, 0, 1);
+                            Name = "fill";
+                            Size = UDim2.new(0, 0, 1, -2);
+                            BorderSizePixel = 0;
+                            library:Create("UIGradient", {
+                                Color = ui_Settings.gradientColorSection;
+                                Rotation = 90;
+                            });
+                        });
+                    });
+                });
 
-			keybindbutton.Text = ". . .";
+                local Connection;
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        if(Connection) then
+                            Connection:Disconnect();
+                            Connection = nil;
+                        end;
+                    end;
+                end);
 
-			Connection = UIS.InputBegan:Connect(function(i)
-				if WhitelistedType[i.UserInputType] then
-					keybindbutton.Text = WhitelistedType[i.UserInputType];
-					spawn(function()
-						wait(0.1)
-						default = i.UserInputType;
-						Type = "UserInputType";
-					end);
-				elseif i.KeyCode ~= Enum.KeyCode.Unknown then
-					keybindbutton.Text = tostring(i.KeyCode):gsub("Enum.KeyCode.", "");
-					spawn(function()
-						wait(0.1)
-						default = i.KeyCode;
-						Type = "KeyCode";
-					end);
-				else
-					warn("Exception: " .. i.UserInputType .. " " .. i.KeyCode);
-				end;
+                holder.slider.MouseButton1Down:Connect(function()
+                    if(Connection) then
+                        Connection:Disconnect();
+                    end;
 
-				
-				Connection:Disconnect();
-			end);
-		end);
+                    Connection = RunService.Heartbeat:Connect(function()
+                        local mouse = UserInputService:GetMouseLocation();
+                        local percent = math.clamp((mouse.X - holder.slider.AbsolutePosition.X) / (holder.slider.AbsoluteSize.X), 0, 1);
+                        local Value = properties.min + (properties.max - properties.min) * percent;
 
-		UIS.InputBegan:Connect(function(i)
-			if (default == i.UserInputType or default == i.KeyCode) then
-				callback(default);
-			end;
-		end);
-		self:Resize()
-	end
-	local Detect = Instance.new('IntValue', main)
-	Detect.Name = '0v1'
-	return mainLib
-end
+                        if not properties.precise then
+                            Value = math.floor(Value);
+                        end;
+
+                        Value = tonumber(string.format("%.2f", Value));
+
+                        library:Tween(holder.slider.fill, {time = 0.1, Size = UDim2.new(percent, 0, 1, -2)})
+                        holder.slider.value.Text = tostring(Value);
+                        library.flags[sliderName] = Value;
+
+                        callback(Value);
+                    end);
+                end);
+            end;
+
+            function section:Bind(bindName, defaultKey, callback)
+                local callback = callback or function() end;
+                local input = defaultKey and tostring(defaultKey):gsub("Enum.", ""):gsub("UserInputType.", ""):gsub("KeyCode.", "") or "None";
+                library.callbacks[bindName] = callback;
+                library.flags[bindName] = defaultKey;
+
+                local holder = library:Create("Frame", {
+                    Name = "holder";
+                    Parent = boxContainer;
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                    BackgroundTransparency = 1.000;
+                    LayoutOrder = 2;
+                    Position = UDim2.new(0, 10, 0, 76);
+                    Size = UDim2.new(1, -20, 0, 18);
+                    library:Create("TextLabel", {
+                        Name = "label";
+                        BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                        BackgroundTransparency = 1.000;
+                        Size = UDim2.new(1, 0, 1, 0);
+                        Font = "Gotham";
+                        Text = bindName;
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        TextSize = 12.000;
+                        TextXAlignment = "Left";
+                    });
+                    library:Create("TextButton", {
+                        Name = "keybind";
+                        BackgroundColor3 = Color3.fromRGB(34, 34, 34);
+                        BorderColor3 = Color3.fromRGB(102, 41, 255);
+                        ClipsDescendants = true;
+                        Position = UDim2.new(1, -80, 0, 0);
+                        Size = UDim2.new(0, 80, 1, 0);
+                        AutoButtonColor = false;
+                        Font = Enum.Font.SourceSans;
+                        Text = input;
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        TextSize = 14.000;
+                    });
+                });
+
+                local whitelistedType = {
+                    [Enum.KeyCode.LeftShift] = "L-Shift",
+                    [Enum.KeyCode.RightShift] = "R-Shift",
+                    [Enum.KeyCode.LeftControl] = "L-Ctrl",
+                    [Enum.KeyCode.RightControl] = "R-Ctrl",
+                    [Enum.KeyCode.LeftAlt] = "L-Alt",
+                    [Enum.KeyCode.RightAlt] = "R-Alt",
+                    [Enum.KeyCode.CapsLock] = "CAPS",
+                    [Enum.KeyCode.One] = "1",
+                    [Enum.KeyCode.Two] = "2",
+                    [Enum.KeyCode.Three] = "3",
+                    [Enum.KeyCode.Four] = "4",
+                    [Enum.KeyCode.Five] = "5",
+                    [Enum.KeyCode.Six] = "6",
+                    [Enum.KeyCode.Seven] = "7",
+                    [Enum.KeyCode.Eight] = "8",
+                    [Enum.KeyCode.Nine] = "9",
+                    [Enum.KeyCode.Zero] = "0",
+                    [Enum.KeyCode.KeypadOne] = "Num-1",
+                    [Enum.KeyCode.KeypadTwo] = "Num-2",
+                    [Enum.KeyCode.KeypadThree] = "Num-3",
+                    [Enum.KeyCode.KeypadFour] = "Num-4",
+                    [Enum.KeyCode.KeypadFive] = "Num-5",
+                    [Enum.KeyCode.KeypadSix] = "Num-6",
+                    [Enum.KeyCode.KeypadSeven] = "Num-7",
+                    [Enum.KeyCode.KeypadEight] = "Num-8",
+                    [Enum.KeyCode.KeypadNine] = "Num-9",
+                    [Enum.KeyCode.KeypadZero] = "Num-0",
+                    [Enum.KeyCode.Minus] = "-",
+                    [Enum.KeyCode.Equals] = "=",
+                    [Enum.KeyCode.Tilde] = "~",
+                    [Enum.KeyCode.LeftBracket] = "[",
+                    [Enum.KeyCode.RightBracket] = "]",
+                    [Enum.KeyCode.RightParenthesis] = ")",
+                    [Enum.KeyCode.LeftParenthesis] = "(",
+                    [Enum.KeyCode.Semicolon] = ";",
+                    [Enum.KeyCode.Quote] = "'",
+                    [Enum.KeyCode.BackSlash] = "\\",
+                    [Enum.KeyCode.Comma] = ",",
+                    [Enum.KeyCode.Period] = ".",
+                    [Enum.KeyCode.Slash] = "/",
+                    [Enum.KeyCode.Asterisk] = "*",
+                    [Enum.KeyCode.Plus] = "+",
+                    [Enum.KeyCode.Period] = ".",
+                    [Enum.KeyCode.Backquote] = "`",
+                    [Enum.UserInputType.MouseButton1] = "Button-1",
+                    [Enum.UserInputType.MouseButton2] = "Button-2",
+                    [Enum.UserInputType.MouseButton3] = "Button-3",
+                };
+
+                holder.keybind.MouseButton1Click:Connect(function()
+                    holder.keybind.Text = ". . .";
+                    local connection;
+                    connection = UserInputService.InputBegan:Connect(function(input)
+                        connection:Disconnect();
+                        wait();
+
+                        local KeyCodeName = whitelistedType[input.KeyCode] or whitelistedType[input.UserInputType];
+
+                        holder.keybind.Text = KeyCodeName or tostring(input.KeyCode):gsub("Enum.KeyCode.", "");
+                        if(input.UserInputType == Enum.UserInputType.Keyboard) then
+                            library.flags[bindName] = input.KeyCode;
+                        else
+                            library.flags[bindName] = input.UserInputType;
+                        end;
+                    end);
+                end);
+            end;
+
+            function section:Button(buttonName, callback)
+                local callback = callback or function() end;
+                local holder = library:Create("Frame", {
+                    Name = "holder";
+                    Parent = boxContainer;
+                    BackgroundTransparency = 1.000;
+                    Position = UDim2.new(0, 10, 0, 148);
+                    Size = UDim2.new(1, -20, 0, 18);
+                    library:Create("TextButton", {
+                        BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                        Size = UDim2.new(1, 0, 1, 0);
+                        BorderSizePixel = 0;
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        Text = "";
+                        Name = "button";
+                        AutoButtonColor = false;
+                        library:Create("TextLabel", {
+                            Name = "label";
+                            BackgroundTransparency = 1;
+                            Size = UDim2.new(1, 0, 1, 0);
+                            Font = "SourceSans";
+                            TextSize = 14;
+                            TextColor3 = Color3.fromRGB(255, 255, 255);
+                            Text = buttonName;
+                        });
+                        library:Create("UIGradient", {
+                            Rotation = 90;
+                            Color = ui_Settings.gradientColorSection;
+                        });
+                    });
+                });
+
+                holder.button.MouseButton1Click:Connect(callback);
+            end;
+
+            function section:Dropdown(name, list, callback)
+                local callback = callback or function() end;
+                local toggle = false;
+
+                local holder = library:Create("Frame", {
+                    Name = "holder";
+                    BackgroundTransparency = 1.000;
+                    LayoutOrder = 3;
+                    Position = UDim2.new(0, 10, 0, 98);
+                    Size = UDim2.new(1, -20, 0, 36);
+                    Parent = boxContainer;
+                    library:Create("TextLabel", {
+                        Name = "label";
+                        BackgroundTransparency = 1.000;
+                        Size = UDim2.new(1, 0, 0, 18);
+                        Font = Enum.Font.Gotham;
+                        Text = name;
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        TextSize = 12.000;
+                        TextXAlignment = Enum.TextXAlignment.Left;
+                    });
+                    library:Create("TextButton", {
+                        Name = "dropdown";
+                        BackgroundColor3 = Color3.fromRGB(102, 41, 255);
+                        BorderColor3 = Color3.fromRGB(102, 41, 255);
+                        Size = UDim2.new(1, 0, 0, 18);
+                        AutoButtonColor = false;
+                        Font = "SourceSans";
+                        Text = "";
+                        TextColor3 = Color3.fromRGB(0, 0, 0);
+                        TextSize = 14.000;
+                        Position = UDim2.new(0, 0, 0, 18);
+                        library:Create("ImageLabel", {
+                            Name = "icon";
+                            BackgroundTransparency = 1.000;
+                            Position = UDim2.new(1, -18, 0, 0);
+                            Size = UDim2.new(0, 18, 0, 16);
+                            Image = "http://www.roblox.com/asset/?id=4641587888";
+                            ZIndex = 2;
+                        });
+                        library:Create("TextLabel", {
+                            Name = "label";
+                            BackgroundTransparency = 1.000;
+                            Position = UDim2.new(0, 4, 0, 0);
+                            Size = UDim2.new(1, -4, 0, 18);
+                            Font = Enum.Font.Gotham;
+                            Text = "Drop value";
+                            TextColor3 = Color3.fromRGB(255, 255, 255);
+                            TextSize = 12.000;
+                            TextXAlignment = Enum.TextXAlignment.Left;
+                            ZIndex = 2;
+                        });
+                        library:Create("Frame", {
+                            Name = "dropframe";
+                            BackgroundColor3 = Color3.fromRGB(32, 32, 32);
+                            BorderColor3 = Color3.fromRGB(102, 41, 255);
+                            BorderSizePixel = 0;
+                            ClipsDescendants = true;
+                            Position = UDim2.new(0, -1, 1, 1);
+                            Size = UDim2.new(1, 2, 0, 0);
+                            library:Create("UIListLayout", {
+                                SortOrder = "LayoutOrder";
+                                Padding = UDim.new(0, 2);
+                            });
+                        });
+                        library:Create("Frame", {
+                            Name = "fill";
+                            BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                            BorderSizePixel = 0;
+                            Position = UDim2.new(0, 1, 0, 1);
+                            Size = UDim2.new(1, 0, 1, 0);
+                            library:Create("UIGradient", {
+                                Rotation = 90;
+                                Color = ui_Settings.gradientColorSection;
+                            });
+                        });
+                    });
+                });
+
+                for i, v in next, list do
+                    local button = library:Create("TextButton", {
+                        Name = "button";
+                        Text = v;
+                        Parent = holder.dropdown.dropframe;
+                        BackgroundColor3 = Color3.fromRGB(32, 32, 32);
+                        BorderColor3 = Color3.fromRGB(255, 255, 255);
+                        BorderSizePixel = 0;
+                        Size = UDim2.new(1, 0, 0, 16);
+                        Font = "SourceSans";
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        TextSize = 14.000;
+                        ZIndex = 1;
+                    });
+
+                    button.MouseButton1Click:Connect(function()
+                        toggle = false;
+                        holder.dropdown.label.Text = v;
+                        library:Tween(holder.dropdown.icon, {time = 0.1, Rotation = 180});
+                        library:Tween(holder, {time = 0.1, Size = UDim2.new(1, -20, 0, 35)});
+                        library:Tween(holder.dropdown.dropframe, {time = 0.1, Size = UDim2.new(1, 2, 0, 0)}, self.Update);
+                        callback(button.Text);
+                    end);
+                end;
+
+                holder.dropdown.MouseButton1Click:Connect(function()
+                    toggle = not toggle;
+                    local TotalY = 0;
+                    for i, v in next, holder.dropdown.dropframe:GetChildren() do
+                        if(v:IsA("TextButton")) then
+                            TotalY = TotalY + v.AbsoluteSize.Y + 2;
+                        end;
+                    end;
+
+                    if(toggle) then
+                        library:Tween(holder.dropdown.icon, {time = 0.1, Rotation = 0});
+                        library:Tween(holder, {time = 0.1, Size = UDim2.new(1, -20, 0, TotalY + 50)});
+                        library:Tween(holder.dropdown.dropframe, {time = 0.1, Size = UDim2.new(1, 2, 0, TotalY)}, self.Update);
+                    else
+                        library:Tween(holder.dropdown.icon, {time = 0.1, Rotation = 180});
+                        library:Tween(holder, {time = 0.1, Size = UDim2.new(1, -20, 0, 36)});
+                        library:Tween(holder.dropdown.dropframe, {time = 0.1, Size = UDim2.new(1, 2, 0, 0)}, self.Update);
+                    end;
+                end);
+            end;
+
+            function section:ColorPicker(pickerName, defaultColor, callback)
+                local callback = callback or function() end;
+                local defaultColor = defaultColor or Color3.fromRGB(102, 41, 255);
+                local rainbowToggle = false;
+                local Mouse = Players.LocalPlayer:GetMouse();
+
+                local holder = library:Create("Frame", {
+                    Name = "holder";
+                    Parent = boxContainer;
+                    BackgroundTransparency = 1.000;
+                    Position = UDim2.new(0, 10, 0, 172);
+                    Size = UDim2.new(1, -20, 0, 18);
+                    library:Create("TextLabel", {
+                        Name = "label";
+                        BackgroundTransparency = 1.000;
+                        Size = UDim2.new(1, 0, 1, 0);
+                        Font = "Gotham";
+                        Text = pickerName;
+                        TextColor3 = Color3.fromRGB(255, 255, 255);
+                        TextSize = 12.000;
+                        TextXAlignment = Enum.TextXAlignment.Left;
+                    });
+                    library:Create("TextButton", {
+                        Name = "colorpicker";
+                        BackgroundColor3 = Color3.fromRGB(34, 34, 34);
+                        BorderColor3 = Color3.fromRGB(102, 41, 255);
+                        Position = UDim2.new(1, -16, 0, 0);
+                        Size = UDim2.new(0, 16, 0, 16);
+                        AutoButtonColor = false;
+                        Font = Enum.Font.SourceSans;
+                        Text = "";
+                        TextColor3 = Color3.fromRGB(0, 0, 0);
+                        TextSize = 14.000;
+                        library:Create("Frame", {
+                            Name = "colorframe";
+                            BackgroundColor3 = Color3.fromRGB(32, 32, 32);
+                            BorderColor3 = Color3.fromRGB(102, 41, 255);
+                            Position = UDim2.new(0, -148, 1, 6);
+                            Size = UDim2.new(0, 144, 0, 139);
+                            Visible = false;
+                            ZIndex = 2;
+                            library:Create("ImageButton", {
+                                Name = "satval";
+                                Image = "http://www.roblox.com/asset/?id=4650897272";
+                                BorderSizePixel = 0;
+                                AutoButtonColor = false;
+                                BackgroundColor3 = defaultColor;
+                                Position = UDim2.new(0, 4, 0, 3);
+                                Size = UDim2.new(0, 110, 0, 102);
+                                ZIndex = 2;
+                                library:Create("TextButton", {
+                                    Name = "picker";
+                                    BackgroundColor3 = Color3.fromRGB(53, 53, 53);
+                                    BackgroundTransparency = 0.500;
+                                    BorderSizePixel = 0;
+                                    Position = UDim2.new(0.5, 0, 0.5, 0);
+                                    Size = UDim2.new(0, 5, 0, 5);
+                                    ZIndex = 2;
+                                    Text = "";
+                                });
+                            });
+                            library:Create("TextButton", {
+                                Name = "rainbow";
+                                ZIndex = 2;
+                                BackgroundColor3 = Color3.fromRGB(255, 255, 255);
+                                BorderColor3 = Color3.fromRGB(255, 255, 255);
+                                ClipsDescendants = true;
+                                Position = UDim2.new(0, 5, 1, -25);
+                                Size = UDim2.new(0, 133, 0, 20);
+                                AutoButtonColor = false;
+                                Font = "SourceSans";
+                                Text = "";
+                                TextColor3 = Color3.fromRGB(255, 255, 255);
+                                TextSize = 14.000;
+                                library:Create("UIGradient", {
+                                    Color = ui_Settings.gradientColorSection;
+                                    Rotation = -90;
+                                });
+                                library:Create("TextLabel", {
+                                    Name = "label";
+                                    Parent = button;
+                                    BackgroundTransparency = 1.000;
+                                    Size = UDim2.new(1, 0, 1, 0);
+                                    Font = "SourceSans";
+                                    Text = "Rainbow: OFF";
+                                    TextColor3 = Color3.fromRGB(255, 255, 255);
+                                    TextSize = 14.000;
+                                    ZIndex = 2;
+                                });
+                            });
+                            library:Create("ImageButton", {
+                                Name = "hue";
+                                AutoButtonColor = false;
+                                ZIndex = 2;
+                                Position = UDim2.new(0, 118, 0, 3);
+                                Size = UDim2.new(0, 18, 0, 102);
+                                Image = "http://www.roblox.com/asset/?id=4650897105";
+                                library:Create("TextButton", {
+                                    Name = "selector";
+                                    BackgroundColor3 = Color3.fromRGB(53, 53, 53);
+                                    BorderSizePixel = 0;
+                                    Size = UDim2.new(1, 0, 0, 5);
+                                    Text = "";
+                                    ZIndex = 2;
+                                });
+                            });
+                        });
+                        library:Create("Frame", {
+                            Name = "color";
+                            BackgroundColor3 = defaultColor;
+                            BorderSizePixel = 0;
+                            Position = UDim2.new(0, 1, 0, 1);
+                            Size = UDim2.new(0, 14, 0, 14);
+                        });
+                    });
+                });
+
+
+                local colorData = {
+                    H = 1;
+                    S = 1;
+                    V = 1;
+                };
+
+                local Connection1;
+                local Connection2;
+
+                local function getXY(frame)
+                    local x, y = Mouse.X - frame.AbsolutePosition.X, Mouse.Y - frame.AbsolutePosition.Y;
+                    local maxX, maxY = frame.AbsoluteSize.X,frame.AbsoluteSize.Y;
+                    x = math.clamp(x, 0, maxX);
+                    y = math.clamp(y, 0, maxY);
+                    return x / maxX, y / maxY;
+                end;
+
+                local function Update()
+                    local Color = Color3.fromHSV(colorData.H, colorData.S, colorData.V);
+                    holder.colorpicker.color.BackgroundColor3 = Color;
+                    holder.colorpicker.colorframe.satval.BackgroundColor3 = Color3.fromHSV(colorData.H, 1, 1);
+                    callback(Color);
+                end;
+
+                holder.colorpicker.MouseButton1Click:Connect(function()
+                    toggle = not toggle;
+                    holder.colorpicker.colorframe.Visible = toggle;
+                end);
+
+                UserInputService.InputEnded:Connect(function(i)
+                    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+                        if(Connection1) then
+                            Connection1:Disconnect();
+                            Connection1 = nil;
+                        end;
+                        if(Connection2) then
+                            Connection2:Disconnect();
+                            Connection2 = nil;
+                        end;
+                        isFocused = false;
+                    end;
+                end);
+
+                holder.colorpicker.colorframe.rainbow.MouseButton1Click:Connect(function()
+                    rainbowToggle = not rainbowToggle;
+                    holder.colorpicker.colorframe.rainbow.label.Text = rainbowToggle and "Rainbow: ON" or "Rainbow: OFF";
+
+                    if(rainbowToggle) then
+                        repeat
+                            library:Tween(holder.colorpicker.colorframe.hue.selector, {time = 0.1, Position = UDim2.new(0, 0, library.rainbowI, 0)});
+                            holder.colorpicker.colorframe.satval.BackgroundColor3 = Color3.fromHSV(1 - library.rainbowI, 1, 1);
+                            holder.colorpicker.color.BackgroundColor3 = library.rainbowVal;
+                            callback(library.rainbowVal);
+                            RunService.Heartbeat:Wait();
+                        until not rainbowToggle;
+                    end;
+                end);
+
+                holder.colorpicker.colorframe.satval.InputBegan:Connect(function(i)
+                    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+                        if(Connection1) then
+                            Connection1:Disconnect();
+                        end;
+                        Connection1 = RunService.Heartbeat:Connect(function()
+                            local X, Y = getXY(holder.colorpicker.colorframe.satval);
+
+                            holder.colorpicker.colorframe.satval.picker.Position = UDim2.new(X, 0, Y, 0);
+                            colorData.S = X;
+                            colorData.V = 1 - Y;
+                            Update();
+                        end);
+                    end;
+                end);
+
+                holder.colorpicker.colorframe.hue.InputBegan:Connect(function(i)
+                    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+                        if(Connection2) then
+                            Connection2:Disconnect();
+                        end;
+
+                        Connection2 = RunService.Heartbeat:Connect(function()
+                            local X, Y = getXY(holder.colorpicker.colorframe.hue);
+
+                            colorData.H = 1 - Y;
+                            holder.colorpicker.colorframe.hue.selector.Position = UDim2.new(0, 0, Y, 0);
+                            Update();
+                        end);
+                    end;
+                end);
+            end;
+
+            return section;
+        end;
+    end;
+
+    return library;
+end;
+
+return initLibrary();
