@@ -97,7 +97,8 @@ local function initLibrary()
             shadowGradientColor = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)), ColorSequenceKeypoint.new(1, Color3.fromRGB(36, 36, 36))};
         };
 
-        UserInputService.InputBegan:Connect(function(input)
+        UserInputService.InputBegan:Connect(function(input, gpe)
+            if gpe then return end
             for i, v in next, library.flags do
                 if(v == input.KeyCode) then
                     library.callbacks[i]();
@@ -680,7 +681,6 @@ local function initLibrary()
                     holder.keybind.Text = ". . .";
                     local connection;
                     connection = UserInputService.InputBegan:Connect(function(input, gpe)
-                        if gpe then return end
                         connection:Disconnect();
                         wait();
 
