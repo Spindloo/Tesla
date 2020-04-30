@@ -314,7 +314,7 @@ local function initLibrary()
                 BackgroundColor3 = Color3.fromRGB(34, 34, 34);
                 Parent = main.border;
                 Position = UDim2.new(0, 1, 0, 1);
-                Size = UDim2.new(1, -2, 1, -2);
+                Size = UDim2.new(1, 200, 1, -2);
                 BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png";
                 TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png";
                 ScrollBarThickness = 4;
