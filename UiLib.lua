@@ -679,7 +679,8 @@ local function initLibrary()
                 holder.keybind.MouseButton1Click:Connect(function()
                     holder.keybind.Text = ". . .";
                     local connection;
-                    connection = UserInputService.InputBegan:Connect(function(input)
+                    connection = UserInputService.InputBegan:Connect(function(input, gpe)
+                        if gpe then return end
                         connection:Disconnect();
                         wait();
 
