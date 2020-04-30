@@ -118,7 +118,7 @@ local function initLibrary()
             Position = UDim2.new(0.5, -200, 0.5, -135);
             BorderSizePixel = 0;
             BackgroundColor3 = ui_Settings.mainColor; -- main color
-            Size = UDim2.new(0, 600,0, 270);
+            Size = UDim2.new(0, 520,0, 270);
             library:Create("ImageLabel", {
                 Name = "Search";
                 BackgroundTransparency = 1.000;
