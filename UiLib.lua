@@ -109,6 +109,7 @@ local function initLibrary()
 
         local gui = Instance.new("ScreenGui", CoreGui);
         gui.Enabled = false;
+        gui.Name = "Tesla";
         library.gui = gui;
 
         local main = library:Create("Frame", {
@@ -212,7 +213,7 @@ local function initLibrary()
                         Position = UDim2.new(0, 10, 0.5, -10);
                         Size = UDim2.new(0, 70, 0, 24);
                         TextColor3 = Color3.fromRGB(255, 255, 255);
-                        Text = "Gamer Lib";
+                        Text = "Tesla";
                         Font = "GothamSemibold";
                         TextSize = 14;
                         library:Create("UIGradient", {
