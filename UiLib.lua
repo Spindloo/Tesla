@@ -131,7 +131,7 @@ local function initLibrary()
                 library:Create("TextBox", {
                     Name = "textbox";
                     BackgroundTransparency = 1.000;
-                    Position = UDim2.new(1, -362, 0, 0);
+                    Position = UDim2.new(1, -270, 0, 0);
                     Size = UDim2.new(1, -30, 1, 0);
                     Font = Enum.Font.Gotham;
                     PlaceholderText = "Search";
@@ -314,7 +314,7 @@ local function initLibrary()
                 BackgroundColor3 = Color3.fromRGB(34, 34, 34);
                 Parent = main.border;
                 Position = UDim2.new(0, 1, 0, 1);
-                Size = UDim2.new(1, 200, 1, -2);
+                Size = UDim2.new(1, 120, 1, -2);
                 BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png";
                 TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png";
                 ScrollBarThickness = 4;
