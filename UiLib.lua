@@ -45,7 +45,7 @@ local function initLibrary()
 
             local function update(input)
                 local delta = input.Position - dragStart;
-                second:TweenPosition(UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y),'Out','Sine',0.15,true);
+                second:TweenPosition(UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y),'Out','Sine',0.25,true);
             end;
 
             main.InputBegan:Connect(function(input)
@@ -115,7 +115,7 @@ local function initLibrary()
         local main = library:Create("Frame", {
             Name = "main";
             Parent = gui;
-            Position = UDim2.new(0.5, -200, 0.5, -135);
+            Position = UDim2.new(0.5, -400, 0.5, -135);
             BorderSizePixel = 0;
             BackgroundColor3 = ui_Settings.mainColor; -- main color
             Size = UDim2.new(0, 400,0, 270);
