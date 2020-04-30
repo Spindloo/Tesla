@@ -118,7 +118,7 @@ local function initLibrary()
             Position = UDim2.new(0.5, -200, 0.5, -135);
             BorderSizePixel = 0;
             BackgroundColor3 = ui_Settings.mainColor; -- main color
-            Size = UDim2.new(0, 520,0, 270);
+            Size = UDim2.new(0, 530,0, 270);
             library:Create("ImageLabel", {
                 Name = "Search";
                 BackgroundTransparency = 1.000;
@@ -131,14 +131,14 @@ local function initLibrary()
                 library:Create("TextBox", {
                     Name = "textbox";
                     BackgroundTransparency = 1.000;
-                    Position = UDim2.new(1, -270, 0, 0);
+                    Position = UDim2.new(1, -500, 0, 0);
                     Size = UDim2.new(1, -30, 1, 0);
                     Font = Enum.Font.Gotham;
                     PlaceholderText = "Search";
                     Text = "";
                     TextColor3 = Color3.fromRGB(255, 255, 255);
                     TextSize = 14.000;
-                    TextXAlignment = Enum.TextXAlignment.Left;
+                    TextXAlignment = Enum.TextXAlignment.Center;
                 });
                 library:Create("ImageLabel", {
                     Name = "icon";
@@ -314,7 +314,7 @@ local function initLibrary()
                 BackgroundColor3 = Color3.fromRGB(34, 34, 34);
                 Parent = main.border;
                 Position = UDim2.new(0, 1, 0, 1);
-                Size = UDim2.new(1, 120, 1, -2);
+                Size = UDim2.new(1, 130, 1, -2);
                 BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png";
                 TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png";
                 ScrollBarThickness = 4;
