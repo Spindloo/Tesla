@@ -695,7 +695,11 @@ local function initLibrary()
                     end);
                 end);
             end;
-
+            function section:TGUI()
+                section:Bind("Toggle GUI Key", Enum.KeyCode.RightShift, function(callback)
+                    gui.Enabled = not gui.Enabled
+                end)
+            end
             function section:Button(buttonName, callback)
                 local callback = callback or function() end;
                 local holder = library:Create("Frame", {
