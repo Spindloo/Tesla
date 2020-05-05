@@ -45,7 +45,7 @@ local function initLibrary()
 
             local function update(input)
                 local delta = input.Position - dragStart;
-                second:TweenPosition(UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y),'Out','Sine',0.25,true);
+                second:TweenPosition(UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y),'Out','Sine',0.01,true);
             end;
 
             main.InputBegan:Connect(function(input)
