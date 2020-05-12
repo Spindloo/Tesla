@@ -1031,7 +1031,8 @@ local defaults; do
         end
     end
 
-    game:GetService("UserInputService").InputBegan:connect(function(input)
+    game:GetService("UserInputService").InputBegan:connect(function(input, gpe)
+        if gpe then return end
         if (not library.binding) then
             for idx, binds in next, library.binds do
                 local real_binding = binds.location[idx];
